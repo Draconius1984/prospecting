@@ -239,6 +239,16 @@ def api_save(job_id):
 
 
 if __name__ == "__main__":
+    import webbrowser
+
     port = int(os.getenv("PORT", "5000"))
-    print(f"OT Prospector web UI -> http://localhost:{port}  (Ctrl+C to stop)")
+    url = f"http://localhost:{port}"
+    print("=" * 56)
+    print(f"  OT Prospector web UI is starting...")
+    print(f"  Open this in your browser:  {url}")
+    print(f"  (Press Ctrl+C in this window to stop the server.)")
+    print("=" * 56)
+    # Auto-open the browser shortly after the server is up. Set NO_BROWSER=1 to skip.
+    if os.getenv("NO_BROWSER") != "1":
+        threading.Timer(1.5, lambda: webbrowser.open(url)).start()
     app.run(host="127.0.0.1", port=port, threaded=True, debug=False)

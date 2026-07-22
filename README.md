@@ -59,13 +59,14 @@ Copy-Item config.example.env .env
 
 ## 🌐 Run it in your browser (localhost)
 
-Prefer clicking to typing? There's a local web UI:
+**Easiest: double-click `Start OT Prospector.bat`.** It launches the server and
+opens your browser automatically. Close the window (or Ctrl+C) to stop.
 
+Or from a terminal:
 ```powershell
-pip install flask                 # once (already in requirements.txt)
-python webapp/app.py
+.\.venv\Scripts\python.exe webapp\app.py
 ```
-Then open **http://localhost:5000**. You get:
+Either way it opens **http://localhost:5000**. You get:
 
 - **Crawl a site list** — paste clinic URLs, hit Run, watch a live log and results table.
 - **Discover by region** — tick Queensland regions and search (needs a search API key).
