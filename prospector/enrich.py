@@ -57,3 +57,35 @@ def domain_search(domain: str, min_confidence: int = 50) -> List[Dict[str, str]]
             }
         )
     return out
+
+
+def find_email(domain: str, first_name: str, last_name: str) -> Optional[Dict[str, str]]:
+    """
+    Hunter.io email-finder: given a domain + person name, return the most likely
+    work email and Hunter's confidence. None if disabled or not found.
+    """
+    if not enabled() or not (domain and first_name and last_name):
+        return None
+    try:
+        resp = requests.get(
+            "https://api.hunter.io/v2/email-finder",
+            params={
+                "domain": domain,
+                "first_name": first_name,
+                "last_name": last_name,
+                "api_key": os.getenv("HUNTER_API_KEY"),
+            },
+            timeout=_TIMEOUT,
+        )
+        resp.raise_for_status()
+        data = resp.json().get("data", {})
+    except Exception as exc:  # pragma: no cover
+        print(f"    ! hunter email-finder error for {first_name} {last_name}@{domain}: {exc}")
+        return None
+    if not data.get("email"):
+        return None
+    return {
+        "email": (data.get("email") or "").lower(),
+        "confidence": str(data.get("confidence") or ""),
+        "position": data.get("position") or "",
+    }

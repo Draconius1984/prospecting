@@ -15,7 +15,10 @@ equipment, supplies, services, partnerships).
 
 ## What it does
 
-- 🔎 **Discovers** OT clinics across every Queensland region (with a search API key).
+- 🧑‍💼 **People Search (Apollo/RocketReach-style)** — enter **roles + industry + location** and it
+  discovers matching companies, extracts **names & job titles** from their team pages, **infers each
+  person's work email** from name+domain patterns, and **SMTP-verifies** it (with catch-all detection).
+- 🔎 **Discovers** clinics/companies across a region (with a search API key).
 - 🕸️ **Crawls** clinic websites politely (respects `robots.txt`, rate-limited) and
   extracts published emails from home / contact / about / team pages.
 - 🧭 **Prefers role inboxes** (`info@`, `reception@`, `referrals@`) and flags
@@ -66,12 +69,13 @@ Or from a terminal:
 ```powershell
 .\.venv\Scripts\python.exe webapp\app.py
 ```
-Either way it opens **http://localhost:5000**. You get:
+Either way it opens **http://localhost:5000** — a professional SaaS-style app with a sidebar:
 
-- **Crawl a site list** — paste clinic URLs, hit Run, watch a live log and results table.
-- **Discover by region** — tick Queensland regions and search (needs a search API key).
-- **Saved leads** — view and download whatever is already in `data/prospects.csv`
-  right in the browser (loads automatically on open if the file exists).
+- **People Search** — criteria form (roles / industry / location) → names, titles, and verified work
+  emails in a sortable, filterable table with status badges, avatars, and CSV export.
+- **Company Crawl** — paste company URLs → every published business email.
+- **Saved Leads** — view/download `data/prospects.csv` in the browser.
+- **Directories** — public sources to find company websites.
 - A **Validate emails (MX)** toggle, per-row flags, and **Download CSV** / **Save to
   `data/prospects.csv`** buttons.
 
@@ -100,6 +104,17 @@ python ot_prospector.py crawl --input data/prospects.csv --out data/crawled.csv
 python ot_prospector.py discover --regions all --out data/discovered.csv
 python ot_prospector.py discover --regions "Brisbane,Gold Coast" --per-query 10
 ```
+
+### People Search — names, roles & work emails (the headline feature)
+```powershell
+python ot_prospector.py people --roles "occupational therapist,practice manager" `
+  --industry "occupational therapy clinic" --location "Gold Coast QLD" --out data/people.csv
+# or scan a list you already have (skips discovery):
+python ot_prospector.py people --input companies.txt --roles "owner,director"
+```
+Flags: `--no-smtp` (skip live verification), `--hunter` (use Hunter.io if `HUNTER_API_KEY` set),
+`--max-companies`, `--per-query`, `--max-pages`. Output includes `contact_name`, `title`,
+`email`, `email_status` (verified/probable/accept_all/…), `email_pattern`, `seniority`.
 
 ### 4. Validate emails (syntax + MX)
 ```powershell

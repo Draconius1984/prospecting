@@ -154,6 +154,35 @@ def cmd_dedupe(args) -> None:
     print(f"\nMerged {len(args.inputs)} file(s): {len(combined)} rows -> {n} unique -> {args.out}\n")
 
 
+def cmd_people(args) -> None:
+    from prospector.people_pipeline import discover_companies, find_people
+
+    roles = [r.strip() for r in (args.roles or "").split(",") if r.strip()]
+    if args.input:
+        sites = [r.website or r.source_url for r in read_prospects(args.input) if (r.website or r.source_url)]
+        print(f"\nFinding people on {len(sites)} supplied site(s)...")
+    else:
+        print(f"\nDiscovering companies: roles={roles} industry='{args.industry}' location='{args.location}'")
+        sites = discover_companies(
+            roles, args.location, args.industry,
+            per_query=args.per_query, max_companies=args.max_companies, on_log=print,
+        )
+    if not sites:
+        sys.exit("No company sites to scan. Add a search key (SERPAPI_API_KEY) or pass --input.")
+
+    people = find_people(
+        sites, roles,
+        delay=args.delay, max_pages=args.max_pages,
+        do_smtp=not args.no_smtp, use_hunter=args.hunter,
+        on_log=lambda m: print("  " + m),
+    )
+    found = dedupe(people)
+    n = write_prospects(args.out, found)
+    with_email = sum(1 for p in found if p.email)
+    verified = sum(1 for p in found if p.email_status == "verified")
+    print(f"\nDone. {n} people ({with_email} with an email, {verified} SMTP-verified) -> {args.out}\n")
+
+
 # --------------------------------------------------------------------------
 # Argument parsing
 # --------------------------------------------------------------------------
@@ -200,6 +229,20 @@ def build_parser() -> argparse.ArgumentParser:
     mp.add_argument("--inputs", nargs="+", required=True)
     mp.add_argument("--out", default="data/master.csv")
     mp.set_defaults(func=cmd_dedupe)
+
+    pp = sub.add_parser("people", help="Find people (name, title, work email) by criteria.")
+    pp.add_argument("--roles", default="", help="Comma list of target titles, e.g. 'occupational therapist,practice manager'.")
+    pp.add_argument("--industry", default="", help="Industry / keywords, e.g. 'occupational therapy clinic'.")
+    pp.add_argument("--location", default="", help="Location, e.g. 'Gold Coast QLD'.")
+    pp.add_argument("--input", help="Instead of discovery: CSV/txt of company sites to scan.")
+    pp.add_argument("--per-query", type=int, default=10)
+    pp.add_argument("--max-companies", type=int, default=25)
+    pp.add_argument("--max-pages", type=int, default=6)
+    pp.add_argument("--delay", type=float, default=1.5)
+    pp.add_argument("--no-smtp", action="store_true", help="Skip live SMTP verification.")
+    pp.add_argument("--hunter", action="store_true", help="Use Hunter.io email-finder if HUNTER_API_KEY set.")
+    pp.add_argument("--out", default="data/people.csv")
+    pp.set_defaults(func=cmd_people)
 
     return p
 

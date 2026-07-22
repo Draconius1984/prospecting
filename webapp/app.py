@@ -46,6 +46,7 @@ from prospector.pipeline import (
     validate_prospects,
     write_prospects,
 )
+from prospector.people_pipeline import discover_companies, find_people
 from prospector.sources import CURATED_SOURCES, QLD_REGIONS
 
 app = Flask(__name__)
@@ -120,6 +121,39 @@ def _worker_crawl(job_id, urls, delay, max_pages, do_validate):
             on_result=lambda p: _emit(job_id, p),
         )
         _finish(job_id, dedupe(found), do_validate)
+    except Exception as exc:  # noqa: BLE001
+        _fail(job_id, exc)
+
+
+def _worker_people(job_id, roles, industry, location, sites, per_query,
+                   max_companies, max_pages, do_smtp, use_hunter):
+    try:
+        if not sites:
+            sites = discover_companies(
+                roles, location, industry, per_query=per_query,
+                max_companies=max_companies, on_log=lambda m: _log(job_id, m),
+            )
+        if not sites:
+            _log(job_id, "No companies to scan. Add a search key (SERPAPI_API_KEY) or paste company URLs.")
+            with LOCK:
+                job = JOBS.get(job_id)
+                if job:
+                    job["status"] = "done"
+            return
+        _log(job_id, f"Scanning {len(sites)} companies for people (SMTP verify: {do_smtp})...")
+        found = find_people(
+            sites, roles, max_pages=max_pages, do_smtp=do_smtp, use_hunter=use_hunter,
+            on_log=lambda m: _log(job_id, m), on_result=lambda p: _emit(job_id, p),
+        )
+        deduped = dedupe(found)
+        with LOCK:
+            job = JOBS.get(job_id)
+            if job:
+                job["prospects"] = deduped
+                job["status"] = "done"
+        verified = sum(1 for p in deduped if p.email_status == "verified")
+        _log(job_id, f"Finished: {len(deduped)} people, "
+                     f"{sum(1 for p in deduped if p.email)} with email, {verified} verified.")
     except Exception as exc:  # noqa: BLE001
         _fail(job_id, exc)
 
@@ -217,6 +251,26 @@ def api_discover():
     do_validate = bool(data.get("validate", True))
     job_id = _new_job("discover")
     _spawn(_worker_discover, job_id, regions, per_query, delay, max_pages, do_validate)
+    return jsonify({"job_id": job_id})
+
+
+@app.route("/api/people", methods=["POST"])
+def api_people():
+    data = request.get_json(force=True) or {}
+    roles = [r.strip() for r in (data.get("roles") or "").split(",") if r.strip()]
+    industry = (data.get("industry") or "").strip()
+    location = (data.get("location") or "").strip()
+    sites = [p.website for p in urls_from_text(data.get("sites", ""))]
+    if not sites and search.active_provider() == "none":
+        return jsonify({"error": "No search key configured. Add SERPAPI_API_KEY to .env, or paste company URLs in the box."}), 400
+    if not sites and not (industry or location or roles):
+        return jsonify({"error": "Enter search criteria (role, industry, location) or paste company URLs."}), 400
+    job_id = _new_job("people")
+    _spawn(
+        _worker_people, job_id, roles, industry, location, sites,
+        int(data.get("per_query", 10)), int(data.get("max_companies", 25)),
+        int(data.get("max_pages", 6)), bool(data.get("smtp", True)), bool(data.get("hunter", False)),
+    )
     return jsonify({"job_id": job_id})
 
 

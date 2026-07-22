@@ -3,292 +3,483 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OT Prospector — Queensland</title>
+<title>Prospector — B2B contact intelligence</title>
 <style>
   :root{
-    --bg:#f5f7fa; --card:#ffffff; --ink:#1f2933; --muted:#6b7280; --line:#e4e8ee;
-    --brand:#0f766e; --brand2:#0d5c56; --accent:#f0fdfa;
-    --warn-bg:#fef3c7; --warn-ink:#92400e; --flag-bg:#fee2e2; --flag-ink:#991b1b;
-    --ok:#047857; --pill:#eef2ff;
+    --bg:#f5f6fa; --surface:#ffffff; --surface-2:#f9fafb; --border:#e6e8ee;
+    --text:#111827; --text-2:#5b6472; --muted:#9aa2af;
+    --primary:#4f46e5; --primary-600:#4338ca; --primary-50:#eef2ff;
+    --ring:rgba(79,70,229,.25);
+    --ok:#047857; --ok-bg:#d1fae5; --warn:#b45309; --warn-bg:#fef3c7;
+    --danger:#b91c1c; --danger-bg:#fee2e2; --info:#0369a1; --info-bg:#e0f2fe;
+    --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.05);
+    --shadow-lg:0 10px 30px rgba(16,24,40,.10);
+    --sb:238px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b0f19; --surface:#121826; --surface-2:#0e1420; --border:#212a3b;
+      --text:#e6e9ef; --text-2:#9aa4b2; --muted:#6b7484;
+      --primary:#818cf8; --primary-600:#6366f1; --primary-50:#1a2036;
+      --ok:#34d399; --ok-bg:#06301f; --warn:#fbbf24; --warn-bg:#3a2c05;
+      --danger:#f87171; --danger-bg:#3a1113; --info:#38bdf8; --info-bg:#052235;
+      --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 12px 34px rgba(0,0,0,.45);
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:var(--brand)}
-  header{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;padding:22px 24px}
-  header h1{margin:0;font-size:20px;letter-spacing:.2px}
-  header .sub{opacity:.9;font-size:13px;margin-top:4px}
-  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 60px}
-  .banner{background:var(--warn-bg);color:var(--warn-ink);border:1px solid #fcd670;border-radius:10px;padding:10px 14px;font-size:13px;margin:16px 0}
-  .grid{display:grid;grid-template-columns:1fr;gap:16px}
-  @media(min-width:900px){.grid{grid-template-columns:380px 1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
-  .card h2{margin:0 0 12px;font-size:15px}
-  .tabs{display:flex;gap:6px;margin-bottom:14px}
-  .tab{flex:1;text-align:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:#fafbfc;font-size:13px;font-weight:600;color:var(--muted)}
-  .tab.active{background:var(--accent);border-color:var(--brand);color:var(--brand2)}
-  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.3px}
-  textarea,input[type=number]{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:inherit;background:#fff}
-  textarea{min-height:150px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
-  .row{display:flex;gap:10px}
-  .row>div{flex:1}
-  .checks{display:flex;flex-wrap:wrap;gap:6px 12px;max-height:160px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px}
-  .checks label{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;margin:0;font-weight:500;color:var(--ink);font-size:13px}
-  .opts{display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap}
-  .opts label{margin:0;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);display:flex;gap:6px;align-items:center}
-  .opts .num{width:90px}
-  button.run{margin-top:14px;width:100%;background:var(--brand);color:#fff;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer}
-  button.run:disabled{background:#9ca3af;cursor:not-allowed}
-  button.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink)}
-  .status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-  .pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--pill);color:#3730a3}
-  .pill.run{background:#fef9c3;color:#854d0e}
-  .pill.done{background:#dcfce7;color:var(--ok)}
-  .pill.err{background:var(--flag-bg);color:var(--flag-ink)}
-  .counts{font-size:13px;color:var(--muted)}
-  .counts b{color:var(--ink)}
-  .cfgline{font-size:12px;color:var(--muted);margin-top:8px}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
-  .dot.on{background:var(--ok)} .dot.off{background:#cbd5e1}
-  pre.log{background:#0b1220;color:#c7d2fe;border-radius:8px;padding:12px;height:150px;overflow:auto;font-size:12px;margin:0}
-  .tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px}
-  table{border-collapse:collapse;width:100%;font-size:13px}
-  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
-  th{background:#f8fafc;position:sticky;top:0;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
-  tr.flagged td{background:var(--flag-bg)}
-  .tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
-  .tag.generic{background:#e0f2fe;color:#075985}
-  .tag.personal{background:#f3e8ff;color:#6b21a8}
-  .tag.flagged{background:var(--flag-ink);color:#fff}
-  .tag.crawled{background:#e5e7eb;color:#374151}
-  .tag.validated{background:#dcfce7;color:var(--ok)}
-  .muted{color:var(--muted)} .small{font-size:12px}
-  details{margin-top:16px}
-  summary{cursor:pointer;font-weight:600;font-size:14px}
-  .src{font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--primary);text-decoration:none}
+  .app{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{width:var(--sb);flex:0 0 var(--sb);background:var(--surface);
+    border-right:1px solid var(--border);display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;padding:18px 18px 14px}
+  .logo{width:34px;height:34px;border-radius:9px;flex:0 0 34px;
+    background:linear-gradient(135deg,var(--primary),#8b5cf6);display:grid;place-items:center;
+    color:#fff;font-weight:800;box-shadow:var(--shadow)}
+  .brand b{font-size:16px;letter-spacing:-.2px}
+  .brand small{display:block;color:var(--muted);font-size:11px;font-weight:500}
+  .nav{padding:8px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;
+    color:var(--text-2);font-weight:600;font-size:13.5px;cursor:pointer;margin-bottom:2px}
+  .nav a .i{width:18px;text-align:center}
+  .nav a:hover{background:var(--surface-2)}
+  .nav a.active{background:var(--primary-50);color:var(--primary)}
+  .sb-foot{margin-top:auto;padding:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+  .sb-foot .stat-dot{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .dot.on{background:var(--ok)}
+
+  /* Main */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--surface) 85%,transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+    padding:16px 26px;display:flex;align-items:center;gap:14px}
+  .topbar h1{margin:0;font-size:17px;letter-spacing:-.3px}
+  .topbar p{margin:2px 0 0;color:var(--text-2);font-size:12.5px}
+  .chip{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .chip .tag{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;
+    padding:5px 11px;font-size:12px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:6px}
+  .content{padding:22px 26px 60px;max-width:1220px;width:100%}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    box-shadow:var(--shadow);padding:20px}
+  .card h2{margin:0 0 4px;font-size:15px}
+  .card .hint{color:var(--text-2);font-size:12.5px;margin:0 0 16px}
+
+  .grid{display:grid;gap:14px}
+  .grid.c3{grid-template-columns:repeat(3,1fr)}
+  .grid.c2{grid-template-columns:1fr 1fr}
+  @media(max-width:720px){.grid.c3,.grid.c2{grid-template-columns:1fr}}
+
+  label.fld{display:block;font-size:12px;font-weight:700;color:var(--text-2);margin:0 0 6px;
+    text-transform:uppercase;letter-spacing:.4px}
+  input[type=text],input[type=number],textarea,select{width:100%;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);
+    font:inherit;outline:none;transition:border .15s,box-shadow .15s}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--ring)}
+  textarea{min-height:96px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+  .sub{color:var(--muted);font-size:11.5px;margin-top:5px}
+
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+  details.adv{margin-top:14px;border-top:1px dashed var(--border);padding-top:12px}
+  details.adv summary{cursor:pointer;font-weight:700;font-size:12.5px;color:var(--text-2)}
+  .advgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+  @media(max-width:720px){.advgrid{grid-template-columns:1fr 1fr}}
+  .switch{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--text)}
+
+  .btn{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:11px 18px;
+    font-weight:700;font-size:14px;cursor:pointer;box-shadow:var(--shadow);transition:transform .05s,background .15s}
+  .btn:hover{background:var(--primary-600)} .btn:active{transform:translateY(1px)}
+  .btn:disabled{background:var(--muted);cursor:not-allowed;box-shadow:none}
+  .btn.block{width:100%;margin-top:16px;padding:13px}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:8px 13px;font-weight:600;font-size:13px;cursor:pointer}
+  .btn-ghost:hover{background:var(--surface-2)} .btn-ghost:disabled{opacity:.5;cursor:not-allowed}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+  @media(max-width:720px){.stats{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat .v{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .stat .l{font-size:11.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-top:2px}
+  .stat.good .v{color:var(--ok)} .stat.warn .v{color:var(--warn)}
+
+  /* Toolbar + table */
+  .toolbar{display:flex;gap:10px;align-items:center;margin:6px 0 12px;flex-wrap:wrap}
+  .toolbar .search{max-width:280px}
+  .toolbar select{max-width:170px}
+  .spacer{flex:1}
+  .dt{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;min-width:820px}
+  thead th{position:sticky;top:0;background:var(--surface-2);text-align:left;padding:11px 14px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);font-weight:700;
+    border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--surface-2)}
+  .person{display:flex;align-items:center;gap:10px;min-width:0}
+  .avatar{width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:grid;place-items:center;
+    color:#fff;font-weight:700;font-size:12px}
+  .person .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+  .person .co{color:var(--muted);font-size:11.5px}
+  .cell-title{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-2)}
+  .email a{font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
+    font-size:11.5px;font-weight:700;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-danger{background:var(--danger-bg);color:var(--danger)} .b-info{background:var(--info-bg);color:var(--info)}
+  .b-neutral{background:var(--surface-2);color:var(--text-2);border:1px solid var(--border)}
+  .conf{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12px;text-transform:capitalize}
+  .cdot{width:8px;height:8px;border-radius:50%}
+
+  .progress{height:4px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin:6px 0 12px}
+  .progress>div{height:100%;width:35%;background:linear-gradient(90deg,transparent,var(--primary),transparent);
+    animation:slide 1.1s infinite ease-in-out}
+  @keyframes slide{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+  pre.log{background:#0b1220;color:#a5b4fc;border-radius:10px;padding:12px;max-height:150px;overflow:auto;
+    font-size:11.5px;margin:0 0 14px;white-space:pre-wrap}
+  @media (prefers-color-scheme: light){pre.log{background:#0f172a;color:#c7d2fe}}
+
+  .empty{text-align:center;padding:46px 20px;color:var(--muted)}
+  .empty .ico{font-size:34px;margin-bottom:8px}
+  .src{padding:14px 4px;border-bottom:1px solid var(--border)}
+  .src b{font-size:14px}
+  .banner{background:var(--warn-bg);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);
+    border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:16px}
+  .hide{display:none!important}
+  @media(max-width:820px){
+    .app{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center}
+    .nav{display:flex;flex:1;overflow:auto} .nav a{margin:0} .sb-foot{display:none}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>🧭 OT Prospector <span class="small" style="opacity:.8">v{{ version }}</span></h1>
-  <div class="sub">Find published business emails of occupational therapy clinics across Queensland — compliance-first.</div>
-</header>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div><b>Prospector</b><small>Contact intelligence</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a class="active" data-view="people"><span class="i">🔍</span> People Search</a>
+      <a data-view="crawl"><span class="i">🏢</span> Company Crawl</a>
+      <a data-view="saved"><span class="i">📇</span> Saved Leads</a>
+      <a data-view="directories"><span class="i">📚</span> Directories</a>
+    </nav>
+    <div class="sb-foot">
+      <div class="stat-dot"><span class="dot" id="d-search"></span> Search API: <b id="v-search">—</b></div>
+      <div class="stat-dot"><span class="dot" id="d-hunter"></span> Hunter enrich: <b id="v-hunter">—</b></div>
+      <div style="margin-top:8px">Read <b>docs/COMPLIANCE.md</b> before outreach.</div>
+    </div>
+  </aside>
 
-<div class="wrap">
-  <div class="banner">
-    ⚠️ <b>Before any outreach:</b> read <code>docs/COMPLIANCE.md</code>. Exclude rows marked
-    <b>flagged</b>, prefer role inboxes (info@ / reception@), and keep the source URL as evidence
-    of conspicuous publication (Spam Act 2003 &amp; Privacy Act).
-  </div>
-
-  <div class="grid">
-    <!-- LEFT: controls -->
-    <div class="card">
-      <div class="tabs">
-        <div class="tab active" data-mode="crawl" onclick="setMode('crawl')">Crawl a site list</div>
-        <div class="tab" data-mode="discover" onclick="setMode('discover')">Discover by region</div>
-        <div class="tab" data-mode="saved" id="savedTab" onclick="setMode('saved')">Saved leads</div>
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">People Search</h1>
+        <p id="viewSub">Enter criteria to find names, roles, and work emails.</p>
       </div>
+      <div class="chip" id="cfgChip"></div>
+    </header>
+
+    <div class="content">
+      <!-- PEOPLE -->
+      <section id="view-people">
+        <div class="card">
+          <h2>Search criteria</h2>
+          <p class="hint">Describe who you're looking for. The engine finds matching companies, extracts people, infers &amp; verifies their work emails.</p>
+          <div class="grid c3">
+            <div><label class="fld">Job titles / roles</label>
+              <input type="text" id="p-roles" placeholder="occupational therapist, practice manager, owner">
+              <div class="sub">Comma-separated. Leave blank to keep everyone.</div></div>
+            <div><label class="fld">Industry / keywords</label>
+              <input type="text" id="p-industry" placeholder="occupational therapy clinic"></div>
+            <div><label class="fld">Location</label>
+              <input type="text" id="p-location" placeholder="Gold Coast, QLD"></div>
+          </div>
+          <details class="adv">
+            <summary>Advanced options &amp; scan-a-list</summary>
+            <div class="advgrid">
+              <div><label class="fld">Max companies</label><input type="number" id="p-maxco" value="25" min="1" max="200"></div>
+              <div><label class="fld">Results / query</label><input type="number" id="p-perq" value="10" min="1" max="20"></div>
+              <div><label class="fld">Max pages / site</label><input type="number" id="p-maxp" value="6" min="1" max="15"></div>
+              <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:8px">
+                <label class="switch"><input type="checkbox" id="p-smtp" checked> SMTP verify</label>
+                <label class="switch"><input type="checkbox" id="p-hunter"> Hunter finder</label>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <label class="fld">Or paste company URLs to scan directly (skips discovery)</label>
+              <textarea id="p-sites" placeholder="clinicone.com.au&#10;https://clinictwo.com.au"></textarea>
+            </div>
+          </details>
+          <button class="btn block" id="p-run" onclick="runPeople()">🔍 Search people</button>
+        </div>
+        <div id="res-people"></div>
+      </section>
 
       <!-- CRAWL -->
-      <div id="panel-crawl">
-        <label>Clinic website URLs (one per line)</label>
-        <textarea id="urls" placeholder="brisbanepaediatricot.com.au&#10;https://goldcoastot.com.au&#10;yourclinic.com.au"></textarea>
-        <div class="small muted" style="margin-top:6px">Tip: gather these from the directories below, then paste here.</div>
-      </div>
-
-      <!-- DISCOVER -->
-      <div id="panel-discover" style="display:none">
-        <label>Regions to search</label>
-        <div class="checks" id="regions"></div>
-        <div class="opts">
-          <label>Results / query <input class="num" type="number" id="perq" value="10" min="1" max="20"></label>
+      <section id="view-crawl" class="hide">
+        <div class="card">
+          <h2>Company crawl</h2>
+          <p class="hint">Paste company websites; the tool pulls every conspicuously-published business email (role inboxes, etc.).</p>
+          <label class="fld">Website URLs (one per line)</label>
+          <textarea id="c-urls" placeholder="clinicone.com.au&#10;https://clinictwo.com.au"></textarea>
+          <div class="row" style="margin-top:12px">
+            <div style="max-width:120px"><label class="fld">Delay (s)</label><input type="number" id="c-delay" value="2" min="0" step="0.5"></div>
+            <div style="max-width:120px"><label class="fld">Max pages</label><input type="number" id="c-maxp" value="5" min="1" max="15"></div>
+            <label class="switch" style="margin-bottom:10px"><input type="checkbox" id="c-validate" checked> Validate (MX)</label>
+          </div>
+          <button class="btn block" id="c-run" onclick="runCrawl()">🏢 Crawl sites</button>
         </div>
-        <div id="nokey" class="cfgline" style="display:none;color:var(--flag-ink)">
-          No search API key configured — add <code>SERPAPI_API_KEY</code> to <code>.env</code> to enable discovery, or use Crawl mode.
-        </div>
-      </div>
+        <div id="res-crawl"></div>
+      </section>
 
       <!-- SAVED -->
-      <div id="panel-saved" style="display:none">
-        <p class="small muted">Your saved / researched leads from <code>data/prospects.csv</code>.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="ghost" onclick="loadSaved()">🔄 Load / refresh</button>
-          <a class="ghost" href="/api/saved/download" style="text-decoration:none">⬇ Download CSV</a>
+      <section id="view-saved" class="hide">
+        <div class="card">
+          <h2>Saved leads</h2>
+          <p class="hint">Everything in <code>data/prospects.csv</code> — your research list and anything you've saved.</p>
+          <button class="btn-ghost" onclick="loadSaved()">🔄 Load / refresh</button>
         </div>
-        <div id="savedNote" class="small muted" style="margin-top:8px"></div>
-      </div>
+        <div id="res-saved"></div>
+      </section>
 
-      <div id="runControls">
-        <div class="opts">
-          <label>Delay (s) <input class="num" type="number" id="delay" value="2" min="0" step="0.5"></label>
-          <label>Max pages <input class="num" type="number" id="maxp" value="5" min="1" max="15"></label>
-          <label><input type="checkbox" id="validate" checked> Validate emails (MX)</label>
+      <!-- DIRECTORIES -->
+      <section id="view-directories" class="hide">
+        <div class="card">
+          <h2>Public directories</h2>
+          <p class="hint">Sources to mine for company websites, then feed into Company Crawl or People Search.</p>
+          <div id="dir-list"></div>
         </div>
-        <button class="run" id="runBtn" onclick="run()">Run</button>
-        <div class="cfgline" id="cfg"></div>
-      </div>
-    </div>
-
-    <!-- RIGHT: results -->
-    <div class="card">
-      <div class="status">
-        <span class="pill" id="pill">idle</span>
-        <span class="counts" id="counts"></span>
-        <span style="margin-left:auto"></span>
-        <button class="ghost" id="dlBtn" onclick="download()" disabled>⬇ Download CSV</button>
-        <button class="ghost" id="saveBtn" onclick="save()" disabled>💾 Save to data/prospects.csv</button>
-      </div>
-      <pre class="log" id="log">Ready. Choose a mode on the left and hit Run.</pre>
-      <div class="tablewrap">
-        <table id="tbl">
-          <thead><tr>
-            <th>Practice</th><th>Email</th><th>Type</th><th>Phone</th>
-            <th>Website</th><th>Status</th><th>MX</th><th>Notes</th>
-          </tr></thead>
-          <tbody id="rows"><tr><td colspan="8" class="muted small" style="padding:16px">No results yet.</td></tr></tbody>
-        </table>
-      </div>
+      </section>
     </div>
   </div>
-
-  <details id="srcbox">
-    <summary>📚 Public Queensland OT directories to source clinic sites from</summary>
-    <div id="sources"></div>
-  </details>
 </div>
 
 <script>
-let MODE = "crawl";
-let JOB = null;
-let TIMER = null;
+const STATE = {};                 // prefix -> {rows, jobId, mode}
+let CFG = {search_provider:'none', hunter_enabled:false};
 
-function setMode(m){
-  MODE = m;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===m));
-  document.getElementById('panel-crawl').style.display  = m==='crawl' ? 'block':'none';
-  document.getElementById('panel-discover').style.display = m==='discover' ? 'block':'none';
-  document.getElementById('panel-saved').style.display = m==='saved' ? 'block':'none';
-  document.getElementById('runControls').style.display = m==='saved' ? 'none':'block';
-  if(m==='saved') loadSaved();
+const VIEWS = {
+  people:{title:'People Search', sub:'Enter criteria to find names, roles, and work emails.'},
+  crawl:{title:'Company Crawl', sub:'Pull published business emails from a list of company sites.'},
+  saved:{title:'Saved Leads', sub:'Your saved and researched contacts.'},
+  directories:{title:'Directories', sub:'Public sources to find company websites.'},
+};
+
+function switchView(v){
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active', a.dataset.view===v));
+  ['people','crawl','saved','directories'].forEach(x=>
+    document.getElementById('view-'+x).classList.toggle('hide', x!==v));
+  document.getElementById('viewTitle').textContent = VIEWS[v].title;
+  document.getElementById('viewSub').textContent = VIEWS[v].sub;
+  if(v==='saved') loadSaved();
+  if(v==='directories') loadDirectories();
 }
+document.getElementById('nav').addEventListener('click', e=>{
+  const a = e.target.closest('a[data-view]'); if(a) switchView(a.dataset.view);
+});
 
-async function loadSaved(){
-  setPill('run','loading…');
-  const j = await (await fetch('/api/saved')).json();
-  if(!j.exists || !j.count){
-    document.getElementById('savedNote').textContent =
-      'No data/prospects.csv yet — run a crawl and click “Save”, or generate the research list.';
-    setPill('idle','idle'); setCounts(0,0,0); renderRows([]); return;
-  }
-  document.getElementById('savedNote').textContent = 'Loaded from data/prospects.csv';
-  setLog(`Loaded ${j.count} saved lead(s) from data/prospects.csv (${j.with_email} with an email).`);
-  setCounts(j.count, j.with_email, j.flagged);
-  renderRows(j.prospects||[]);
-  setPill('done','saved list');
-}
-
-async function loadConfig(){
-  const c = await (await fetch('/api/config')).json();
-  // regions
-  const box = document.getElementById('regions');
-  box.innerHTML = c.regions.map(r=>`<label><input type="checkbox" class="rgn" value="${r}" checked>${r}</label>`).join('');
-  // status line
-  const sp = c.search_provider!=='none';
-  document.getElementById('cfg').innerHTML =
-    `<span class="dot ${sp?'on':'off'}"></span>Search: <b>${sp?c.search_provider:'not set'}</b> &nbsp; `+
-    `<span class="dot ${c.hunter_enabled?'on':'off'}"></span>Hunter enrich: <b>${c.hunter_enabled?'on':'off'}</b>`;
-  document.getElementById('nokey').style.display = sp ? 'none':'block';
-  // sources
-  document.getElementById('sources').innerHTML = c.sources.map(s=>
-    `<div class="src"><b>${s.name}</b> <span class="muted small">[${s.type}]</span><br>`+
-    `<a href="${s.url}" target="_blank" rel="noopener">${s.url}</a><br>`+
-    `<span class="muted small">${s.note}</span></div>`).join('');
-}
-
-async function run(){
-  const validate = document.getElementById('validate').checked;
-  const delay = parseFloat(document.getElementById('delay').value)||2;
-  const max_pages = parseInt(document.getElementById('maxp').value)||5;
-  let url, body;
-  if(MODE==='crawl'){
-    url='/api/crawl';
-    body={urls:document.getElementById('urls').value, delay, max_pages, validate};
-  }else{
-    const regions=[...document.querySelectorAll('.rgn:checked')].map(x=>x.value);
-    url='/api/discover';
-    body={regions, per_query:parseInt(document.getElementById('perq').value)||10, delay, max_pages, validate};
-  }
-  setRunning(true);
-  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const j = await r.json();
-  if(!r.ok){ setRunning(false); setLog('⚠ '+(j.error||'request failed')); setPill('err','error'); return; }
-  JOB=j.job_id;
-  if(TIMER) clearInterval(TIMER);
-  TIMER=setInterval(poll, 1500);
-  poll();
+/* ---------- results scaffold (shared) ---------- */
+function scaffold(prefix, kind){
+  const el = document.getElementById('res-'+prefix);
+  el.innerHTML = `
+    <div class="stats" id="${prefix}-stats"></div>
+    <div class="card" style="padding:14px 16px">
+      <div class="toolbar">
+        <input class="search" type="text" id="${prefix}-filter" placeholder="Filter results…" oninput="renderRows('${prefix}')">
+        <select id="${prefix}-fstatus" onchange="renderRows('${prefix}')">
+          <option value="">All statuses</option>
+          <option value="verified">Verified</option>
+          <option value="probable">Probable</option>
+          <option value="accept_all">Catch-all</option>
+          <option value="unverified">Unverified</option>
+          <option value="invalid">Invalid</option>
+          <option value="_email">Has email</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn-ghost" id="${prefix}-export" onclick="exportRows('${prefix}')" disabled>⬇ Export CSV</button>
+      </div>
+      <div class="progress hide" id="${prefix}-prog"><div></div></div>
+      <pre class="log hide" id="${prefix}-log"></pre>
+      <div class="dt">
+        <table>
+          <thead><tr>
+            <th onclick="sortRows('${prefix}','contact_name')">Name / Company</th>
+            <th onclick="sortRows('${prefix}','title')">Title</th>
+            <th onclick="sortRows('${prefix}','email')">Email</th>
+            <th onclick="sortRows('${prefix}','email_status')">Status</th>
+            <th onclick="sortRows('${prefix}','confidence')">Confidence</th>
+            <th>Source</th>
+          </tr></thead>
+          <tbody id="${prefix}-rows"></tbody>
+        </table>
+      </div>
+    </div>`;
+  STATE[prefix] = STATE[prefix] || {rows:[], jobId:null, sortKey:null, sortDir:1};
 }
 
-async function poll(){
-  if(!JOB) return;
-  const j = await (await fetch('/api/jobs/'+JOB)).json();
-  setLog((j.logs||[]).join('\n'));
-  setCounts(j.count, j.with_email, j.flagged);
-  renderRows(j.prospects||[]);
-  if(j.status==='running'){ setPill('run','running…'); }
-  else if(j.status==='done'){ setPill('done','done'); stop(true); }
-  else if(j.status==='error'){ setPill('err','error'); stop(false); }
+/* ---------- rendering ---------- */
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function avatarColor(s){let h=0;for(const c of (s||'?'))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 45%)`;}
+function initials(s){const p=(s||'').trim().split(/\s+/);return ((p[0]||'?')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();}
+
+function statusBadge(r){
+  const es=r.email_status||'';
+  const map={verified:['b-ok','Verified'],probable:['b-info','Probable'],accept_all:['b-neutral','Catch-all'],
+             unverified:['b-warn','Unverified'],invalid:['b-danger','Invalid']};
+  if(map[es]) return `<span class="badge ${map[es][0]}">${map[es][1]}</span>`;
+  if(r.status==='flagged') return `<span class="badge b-danger">Flagged</span>`;
+  if(r.mx_ok==='yes') return `<span class="badge b-ok">MX ok</span>`;
+  if(r.mx_ok==='no') return `<span class="badge b-danger">No MX</span>`;
+  return r.email? `<span class="badge b-neutral">Found</span>`:`<span class="badge b-neutral">—</span>`;
+}
+function confBadge(c){const m={high:'var(--ok)',medium:'var(--warn)',low:'var(--muted)'};
+  return c?`<span class="conf"><span class="cdot" style="background:${m[c]||'var(--muted)'}"></span>${esc(c)}</span>`:'';}
+
+function statsFor(rows){
+  const total=rows.length, withEmail=rows.filter(r=>r.email).length;
+  const verified=rows.filter(r=>r.email_status==='verified').length;
+  const review=rows.filter(r=>r.status==='flagged'||r.email_status==='invalid').length;
+  return [['Results',total,''],['With email',withEmail,''],['Verified',verified,'good'],['Needs review',review,'warn']];
 }
 
-function stop(ok){
-  if(TIMER){ clearInterval(TIMER); TIMER=null; }
-  document.getElementById('runBtn').disabled=false;
-  document.getElementById('dlBtn').disabled=!ok;
-  document.getElementById('saveBtn').disabled=!ok;
+function passesFilter(prefix,r){
+  const q=(document.getElementById(prefix+'-filter').value||'').toLowerCase();
+  const fs=document.getElementById(prefix+'-fstatus').value;
+  if(q){const hay=(r.contact_name+' '+r.practice_name+' '+r.company+' '+r.title+' '+r.email).toLowerCase();
+    if(!hay.includes(q)) return false;}
+  if(fs==='_email'){ if(!r.email) return false; }
+  else if(fs && r.email_status!==fs) return false;
+  return true;
 }
-function setRunning(on){
-  document.getElementById('runBtn').disabled=on;
-  if(on){ document.getElementById('dlBtn').disabled=true; document.getElementById('saveBtn').disabled=true;
-          document.getElementById('rows').innerHTML=''; }
-}
-function setPill(cls,txt){ const p=document.getElementById('pill'); p.className='pill '+cls; p.textContent=txt; }
-function setLog(t){ const l=document.getElementById('log'); l.textContent=t; l.scrollTop=l.scrollHeight; }
-function setCounts(t,e,f){
-  document.getElementById('counts').innerHTML =
-    `<b>${t||0}</b> records · <b>${e||0}</b> with email · <b style="color:var(--flag-ink)">${f||0}</b> flagged`;
-}
-function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function tag(cls,txt){ return txt?`<span class="tag ${cls}">${esc(txt)}</span>`:''; }
 
-function renderRows(rows){
-  const tb=document.getElementById('rows');
-  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" class="muted small" style="padding:16px">No results yet.</td></tr>'; return; }
-  tb.innerHTML = rows.map(r=>{
-    const flagged = r.status==='flagged';
-    const site = r.website ? `<a href="${esc(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//,''))}</a>` : '';
-    const mail = r.email ? `<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : '<span class="muted">—</span>';
-    return `<tr class="${flagged?'flagged':''}">`+
-      `<td title="${esc(r.practice_name)}">${esc(r.practice_name)}</td>`+
-      `<td>${mail}</td>`+
-      `<td>${tag(r.email_type,r.email_type)}</td>`+
-      `<td>${esc(r.phone)}</td>`+
-      `<td>${site}</td>`+
-      `<td>${tag(r.status,r.status)}</td>`+
-      `<td>${esc(r.mx_ok)}</td>`+
-      `<td title="${esc(r.notes)}">${esc(r.notes)}</td></tr>`;
+function renderRows(prefix){
+  const st=STATE[prefix]; if(!st) return;
+  let rows=st.rows.slice();
+  if(st.sortKey){rows.sort((a,b)=>((a[st.sortKey]||'')>(b[st.sortKey]||'')?1:-1)*st.sortDir);}
+  rows=rows.filter(r=>passesFilter(prefix,r));
+  // stats (from full set, not filtered)
+  const sc=document.getElementById(prefix+'-stats');
+  sc.innerHTML=statsFor(st.rows).map(s=>`<div class="stat ${s[2]}"><div class="v">${s[1]}</div><div class="l">${s[0]}</div></div>`).join('');
+  const tb=document.getElementById(prefix+'-rows');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ico">🗂️</div>${st.rows.length?'No rows match your filter.':'No results yet.'}</div></td></tr>`;return;}
+  tb.innerHTML=rows.map(r=>{
+    const name=r.contact_name||r.practice_name||r.company||'';
+    const co=r.company||r.practice_name||'';
+    const mail=r.email?`<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>`:'<span class="muted">—</span>';
+    const site=r.website?`<a href="${esc(r.website)}" target="_blank" rel="noopener">site ↗</a>`:'';
+    return `<tr>
+      <td><div class="person">
+        <div class="avatar" style="background:${avatarColor(name)}">${initials(name)}</div>
+        <div style="min-width:0"><div class="nm">${esc(name)}</div>${co&&co!==name?`<div class="co">${esc(co)}</div>`:''}</div>
+      </div></td>
+      <td class="cell-title" title="${esc(r.title)}">${esc(r.title)||'<span class="muted">—</span>'}</td>
+      <td class="email">${mail}${r.email_pattern?`<div class="co" style="font-family:ui-monospace">${esc(r.email_pattern)}</div>`:''}</td>
+      <td>${statusBadge(r)}</td>
+      <td>${confBadge(r.confidence)}</td>
+      <td>${site}</td>
+    </tr>`;
   }).join('');
 }
+function sortRows(prefix,key){const st=STATE[prefix];if(!st)return;
+  st.sortDir=(st.sortKey===key)?-st.sortDir:1;st.sortKey=key;renderRows(prefix);}
 
-async function download(){ if(JOB) window.location='/api/jobs/'+JOB+'/download'; }
-async function save(){
-  if(!JOB) return;
-  const j = await (await fetch('/api/jobs/'+JOB+'/save',{method:'POST'})).json();
-  if(j.path){ setLog(document.getElementById('log').textContent + `\n💾 Saved ${j.saved} record(s) to ${j.path}`); }
+/* ---------- job runner ---------- */
+function setBusy(prefix,on){
+  document.getElementById(prefix+'-prog').classList.toggle('hide',!on);
+  document.getElementById(prefix+'-log').classList.toggle('hide',!on&&!(STATE[prefix]&&STATE[prefix].jobId));
+}
+async function runJob(prefix,url,body,btn){
+  scaffold(prefix);
+  const b=document.getElementById(btn); b.disabled=true;
+  setBusy(prefix,true);
+  document.getElementById(prefix+'-log').classList.remove('hide');
+  let r,j;
+  try{ r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); j=await r.json(); }
+  catch(e){ document.getElementById(prefix+'-log').textContent='Request failed: '+e; b.disabled=false; setBusy(prefix,false); return; }
+  if(!r.ok){ document.getElementById(prefix+'-log').textContent='⚠ '+(j.error||'error'); b.disabled=false; setBusy(prefix,false); return; }
+  STATE[prefix].jobId=j.job_id;
+  const timer=setInterval(async()=>{
+    const s=await (await fetch('/api/jobs/'+j.job_id)).json();
+    document.getElementById(prefix+'-log').textContent=(s.logs||[]).join('\n');
+    document.getElementById(prefix+'-log').scrollTop=1e9;
+    STATE[prefix].rows=s.prospects||[]; renderRows(prefix);
+    if(s.status!=='running'){
+      clearInterval(timer); b.disabled=false; setBusy(prefix,false);
+      document.getElementById(prefix+'-export').disabled=!(s.prospects&&s.prospects.length);
+    }
+  },1500);
+}
+function exportRows(prefix){const st=STATE[prefix];
+  if(st&&st.jobId) window.location='/api/jobs/'+st.jobId+'/download';
+  else if(prefix==='saved') window.location='/api/saved/download';}
+
+/* ---------- actions ---------- */
+function runPeople(){
+  runJob('people','/api/people',{
+    roles:document.getElementById('p-roles').value,
+    industry:document.getElementById('p-industry').value,
+    location:document.getElementById('p-location').value,
+    sites:document.getElementById('p-sites').value,
+    max_companies:+document.getElementById('p-maxco').value||25,
+    per_query:+document.getElementById('p-perq').value||10,
+    max_pages:+document.getElementById('p-maxp').value||6,
+    smtp:document.getElementById('p-smtp').checked,
+    hunter:document.getElementById('p-hunter').checked,
+  },'p-run');
+}
+function runCrawl(){
+  runJob('crawl','/api/crawl',{
+    urls:document.getElementById('c-urls').value,
+    delay:+document.getElementById('c-delay').value||2,
+    max_pages:+document.getElementById('c-maxp').value||5,
+    validate:document.getElementById('c-validate').checked,
+  },'c-run');
+}
+async function loadSaved(){
+  scaffold('saved');
+  const j=await (await fetch('/api/saved')).json();
+  STATE.saved.rows=j.prospects||[]; STATE.saved.jobId=null;
+  document.getElementById('saved-export').disabled=!(j.exists&&j.count);
+  document.getElementById('saved-export').onclick=()=>window.location='/api/saved/download';
+  renderRows('saved');
+  if(!j.exists||!j.count){document.getElementById('saved-rows').innerHTML=
+    `<tr><td colspan="6"><div class="empty"><div class="ico">📇</div>No saved leads yet. Run a search, then export/save.</div></td></tr>`;}
+}
+async function loadDirectories(){
+  const c=CFG.sources||[];
+  document.getElementById('dir-list').innerHTML=c.map(s=>
+    `<div class="src"><b>${esc(s.name)}</b> <span class="muted">[${esc(s.type)}]</span><br>
+     <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a><br>
+     <span class="muted" style="font-size:12px">${esc(s.note)}</span></div>`).join('');
 }
 
-loadConfig();
-fetch('/api/saved').then(r=>r.json()).then(j=>{
-  if(j.exists && j.count){ document.getElementById('savedTab').textContent = 'Saved leads ('+j.count+')'; }
-}).catch(()=>{});
+/* ---------- boot ---------- */
+(async function(){
+  CFG=await (await fetch('/api/config')).json();
+  const sp=CFG.search_provider!=='none';
+  document.getElementById('v-search').textContent=sp?CFG.search_provider:'not set';
+  document.getElementById('d-search').classList.toggle('on',sp);
+  document.getElementById('v-hunter').textContent=CFG.hunter_enabled?'on':'off';
+  document.getElementById('d-hunter').classList.toggle('on',CFG.hunter_enabled);
+  document.getElementById('cfgChip').innerHTML=
+    `<span class="tag"><span class="dot ${sp?'on':''}"></span>Search: ${sp?CFG.search_provider:'add a key'}</span>`+
+    `<span class="tag">v${CFG.version||''}</span>`;
+  if(!sp){document.getElementById('view-people').insertAdjacentHTML('afterbegin',
+    `<div class="banner">No search API key set — add <code>SERPAPI_API_KEY</code> to <code>.env</code> for automatic company discovery, or paste company URLs under “Advanced”.</div>`);}
+  scaffold('people');
+})();
 </script>
 </body>
 </html>

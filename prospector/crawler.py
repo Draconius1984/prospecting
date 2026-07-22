@@ -134,6 +134,21 @@ class Crawler:
                 ordered.append(u)
         return ordered
 
+    def collect_pages(self, start_url: str) -> List:
+        """Return [(url, html), ...] for the home + contact/about/team pages."""
+        if not start_url.startswith(("http://", "https://")):
+            start_url = "https://" + start_url
+        pages: List = []
+        home = self.fetch(start_url)
+        if home is None:
+            return pages
+        pages.append((start_url, home))
+        for link in self._contact_links(home, start_url)[: self.max_pages - 1]:
+            page = self.fetch(link)
+            if page:
+                pages.append((link, page))
+        return pages
+
     # -- public API -------------------------------------------------------
     def crawl_site(self, start_url: str) -> Dict:
         """
