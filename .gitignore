@@ -1,0 +1,30 @@
+# --- Secrets / config ---
+.env
+config.env
+*.local
+
+# --- Collected data (may contain personal information) ---
+# By default we do NOT commit gathered contact data to the repo.
+# Keep your prospect lists local unless you have a lawful basis to share them.
+data/*.csv
+!data/seeds_qld_ot.csv
+data/output/
+*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

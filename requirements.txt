@@ -1,0 +1,15 @@
+# Core crawling + parsing
+requests>=2.31
+beautifulsoup4>=4.12
+
+# Email MX validation (optional but recommended)
+dnspython>=2.4
+
+# Registrable-domain extraction (optional; falls back to netloc)
+tldextract>=5.1
+
+# Load API keys from .env (optional)
+python-dotenv>=1.0
+
+# Use the OS trust store for TLS (helps behind corporate proxies). Optional.
+truststore>=0.9 ; python_version >= "3.10"
