@@ -126,7 +126,7 @@ def _worker_crawl(job_id, urls, delay, max_pages, do_validate):
 
 
 def _worker_people(job_id, roles, industry, location, sites, per_query,
-                   max_companies, max_pages, do_smtp, use_hunter):
+                   max_companies, max_pages, do_smtp, use_hunter, deep):
     try:
         if not sites:
             sites = discover_companies(
@@ -140,9 +140,10 @@ def _worker_people(job_id, roles, industry, location, sites, per_query,
                 if job:
                     job["status"] = "done"
             return
-        _log(job_id, f"Scanning {len(sites)} companies for people (SMTP verify: {do_smtp})...")
+        _log(job_id, f"Scanning {len(sites)} companies for people "
+                     f"(SMTP verify: {do_smtp}, deep mode: {deep})...")
         found = find_people(
-            sites, roles, max_pages=max_pages, do_smtp=do_smtp, use_hunter=use_hunter,
+            sites, roles, max_pages=max_pages, do_smtp=do_smtp, use_hunter=use_hunter, deep=deep,
             on_log=lambda m: _log(job_id, m), on_result=lambda p: _emit(job_id, p),
         )
         deduped = dedupe(found)
@@ -269,7 +270,8 @@ def api_people():
     _spawn(
         _worker_people, job_id, roles, industry, location, sites,
         int(data.get("per_query", 10)), int(data.get("max_companies", 25)),
-        int(data.get("max_pages", 6)), bool(data.get("smtp", True)), bool(data.get("hunter", False)),
+        int(data.get("max_pages", 6)), bool(data.get("smtp", True)),
+        bool(data.get("hunter", False)), bool(data.get("deep", False)),
     )
     return jsonify({"job_id": job_id})
 

@@ -44,14 +44,16 @@ def title_matches(title: str, roles: List[str]) -> bool:
     return any(r.strip().lower() in t for r in roles if r.strip())
 
 
-def _learn_pattern(people: List[Dict[str, str]]) -> Optional[str]:
-    """Infer the company email pattern from any person with a known email."""
-    for p in people:
-        if p.get("email"):
-            pat = infer_pattern(p["name"], p["email"])
-            if pat:
-                return pat
-    return None
+def _pattern_from_pairs(pairs) -> Optional[str]:
+    """Infer the company's email pattern as the MOST COMMON template across
+    all confirmed (name, email) pairs."""
+    from collections import Counter
+    counts = Counter()
+    for name, email in pairs:
+        pat = infer_pattern(name, email)
+        if pat:
+            counts[pat] += 1
+    return counts.most_common(1)[0][0] if counts else None
 
 
 def find_people_on_site(
@@ -63,11 +65,12 @@ def find_people_on_site(
     smtp_timeout: float = 8.0,
     smtp_from: Optional[str] = None,
     use_hunter: bool = False,
+    deep: bool = False,
     on_log: LogFn = None,
 ) -> List[Prospect]:
     from bs4 import BeautifulSoup  # type: ignore
 
-    from . import enrich
+    from . import enrich, harvest
     from .compliance import classify_email, page_forbids_unsolicited
     from .people import extract_people
     from .verify import verify_email
@@ -110,9 +113,12 @@ def find_people_on_site(
         return []
 
     mail_domain = _domain_from_site(site_url)
-    pattern = _learn_pattern(people)
+    # Aggressive channels: mine dorks + archives for real @domain addresses.
+    harvested = harvest.gather_domain_emails(mail_domain, deep=deep, on_log=log) if deep else set()
+    pairs = harvest.pairs_for_pattern(people, harvested)
+    pattern = _pattern_from_pairs(pairs)
     if pattern:
-        log(f"    ({domain}: learned email pattern '{pattern}')")
+        log(f"    ({domain}: learned email pattern '{pattern}' from {len(pairs)} seed(s))")
 
     out: List[Prospect] = []
     matched = 0
@@ -134,14 +140,22 @@ def find_people_on_site(
             confidence = "high"
             note_bits.append("email published on site")
         else:
-            # Guess it.
-            if pattern:
+            # 1) Direct hit from a public source (dorking / Wayback / archives).
+            m = harvest.match_email_to_name(name, harvested) if harvested else None
+            if m:
+                email = m
+                email_pattern = infer_pattern(name, m) or ""
+                confidence = "high"
+                note_bits.append("found in public source")
+            # 2) Company pattern (most-common template).
+            elif pattern:
                 guess = apply_pattern(pattern, name, mail_domain)
                 if guess:
                     email = guess
                     email_pattern = pattern
                     confidence = "medium"
                     note_bits.append(f"inferred from company pattern '{pattern}'")
+            # 3) Hunter email-finder (optional API).
             if not email and use_hunter and enrich.enabled():
                 parsed = person.get("name", "").split()
                 if len(parsed) >= 2:
@@ -150,22 +164,30 @@ def find_people_on_site(
                         email = hit["email"]
                         confidence = "medium"
                         note_bits.append(f"hunter finder (conf {hit.get('confidence')})")
+            # 4) Top frequency-ranked guess (first.last, flast, ...).
             if not email:
                 cands = generate_candidates(name, mail_domain)
                 if cands:
                     email, email_pattern = cands[0]
                     note_bits.append("top pattern guess (unconfirmed)")
+            # Corroborate any guess against the harvested public addresses.
+            if email and harvested and email in harvested and confidence != "high":
+                confidence = "high"
+                note_bits.append("corroborated by public source")
 
         # Verify whatever email we ended with.
         mx_ok = ""
         if email:
-            res = verify_email(email, do_smtp=do_smtp, timeout=smtp_timeout,
-                               from_addr=smtp_from or os.getenv("SMTP_FROM", "verify@example.com"))
+            sender = smtp_from if smtp_from is not None else os.getenv("SMTP_FROM", "")
+            res = verify_email(email, do_smtp=do_smtp, timeout=smtp_timeout, from_addr=sender)
             email_status = str(res["status"])
             mx_ok = "yes" if res["mx"] else ("no" if res["mx"] is False else "unknown")
-            if email_status == "verified" and confidence != "high":
-                confidence = "high"
-                note_bits.append("SMTP-verified")
+            if email_status == "verified":
+                if res.get("provider") in ("google", "microsoft"):
+                    note_bits.append(f"250 on {res['provider']} may be soft")
+                elif confidence != "high":
+                    confidence = "high"
+                    note_bits.append("SMTP-verified")
             elif email_status == "invalid":
                 confidence = "low"
                 note_bits.append("failed verification")
@@ -210,6 +232,7 @@ def find_people(
     smtp_timeout: float = 8.0,
     smtp_from: Optional[str] = None,
     use_hunter: bool = False,
+    deep: bool = False,
     on_log: LogFn = None,
     on_result: ResultFn = None,
 ) -> List[Prospect]:
@@ -233,7 +256,7 @@ def find_people(
         log(f"[{i}/{total}] {dom} — finding people...")
         for p in find_people_on_site(
             site, roles, crawler=crawler, do_smtp=do_smtp, smtp_timeout=smtp_timeout,
-            smtp_from=smtp_from, use_hunter=use_hunter, on_log=log,
+            smtp_from=smtp_from, use_hunter=use_hunter, deep=deep, on_log=log,
         ):
             out.append(p)
             if on_result:

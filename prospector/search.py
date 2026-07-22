@@ -35,7 +35,12 @@ def active_provider() -> str:
 
 
 def search(query: str, num: int = 10) -> List[str]:
-    """Dispatch to whichever provider is configured. [] if none."""
+    """Return result URLs only. [] if no provider configured."""
+    return [r["url"] for r in search_rich(query, num) if r.get("url")]
+
+
+def search_rich(query: str, num: int = 10) -> List[dict]:
+    """Return [{url, title, snippet}, ...] so callers can mine SERP snippets."""
     provider = active_provider()
     if provider == "none" or requests is None:
         return []
@@ -51,43 +56,41 @@ def search(query: str, num: int = 10) -> List[str]:
     return []
 
 
-def _serpapi(query: str, num: int) -> List[str]:
+def _serpapi(query: str, num: int) -> List[dict]:
     resp = requests.get(
         "https://serpapi.com/search.json",
         params={
-            "q": query,
-            "engine": "google",
-            "google_domain": "google.com.au",
-            "gl": "au",
-            "hl": "en",
-            "num": num,
-            "api_key": os.getenv("SERPAPI_API_KEY"),
+            "q": query, "engine": "google", "google_domain": "google.com.au",
+            "gl": "au", "hl": "en", "num": num, "api_key": os.getenv("SERPAPI_API_KEY"),
         },
         timeout=_TIMEOUT,
     )
     resp.raise_for_status()
     data = resp.json()
-    return [r["link"] for r in data.get("organic_results", []) if r.get("link")]
+    return [
+        {"url": r.get("link", ""), "title": r.get("title", ""), "snippet": r.get("snippet", "")}
+        for r in data.get("organic_results", []) if r.get("link")
+    ]
 
 
-def _google_cse(query: str, num: int) -> List[str]:
+def _google_cse(query: str, num: int) -> List[dict]:
     resp = requests.get(
         "https://www.googleapis.com/customsearch/v1",
         params={
-            "key": os.getenv("GOOGLE_CSE_API_KEY"),
-            "cx": os.getenv("GOOGLE_CSE_CX"),
-            "q": query,
-            "num": min(num, 10),
-            "gl": "au",
+            "key": os.getenv("GOOGLE_CSE_API_KEY"), "cx": os.getenv("GOOGLE_CSE_CX"),
+            "q": query, "num": min(num, 10), "gl": "au",
         },
         timeout=_TIMEOUT,
     )
     resp.raise_for_status()
     data = resp.json()
-    return [it["link"] for it in data.get("items", []) if it.get("link")]
+    return [
+        {"url": it.get("link", ""), "title": it.get("title", ""), "snippet": it.get("snippet", "")}
+        for it in data.get("items", []) if it.get("link")
+    ]
 
 
-def _bing(query: str, num: int) -> List[str]:
+def _bing(query: str, num: int) -> List[dict]:
     resp = requests.get(
         "https://api.bing.microsoft.com/v7.0/search",
         headers={"Ocp-Apim-Subscription-Key": os.getenv("BING_SEARCH_API_KEY")},
@@ -96,4 +99,7 @@ def _bing(query: str, num: int) -> List[str]:
     )
     resp.raise_for_status()
     data = resp.json()
-    return [v["url"] for v in data.get("webPages", {}).get("value", []) if v.get("url")]
+    return [
+        {"url": v.get("url", ""), "title": v.get("name", ""), "snippet": v.get("snippet", "")}
+        for v in data.get("webPages", {}).get("value", []) if v.get("url")
+    ]

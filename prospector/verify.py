@@ -28,9 +28,28 @@ except Exception:  # pragma: no cover
 _mx_cache: Dict[str, List[str]] = {}
 _catchall_cache: Dict[str, Optional[bool]] = {}
 
-# A neutral MAIL FROM. Use a domain you control in production.
-DEFAULT_FROM = "verify@example.com"
+# Null sender (MAIL FROM:<>) — mimics a bounce and dodges BATV/anti-spoof, the
+# research-recommended probe identity. Override via SMTP_FROM only if needed.
+DEFAULT_FROM = ""
 DEFAULT_HELO = "prospector.local"
+
+# MX-host fingerprints -> mail provider. A 250 from Google/Microsoft is weak
+# (they frequently accept-then-bounce), so callers should downweight it.
+_PROVIDERS = [
+    ("google", ("aspmx.l.google.com", "googlemail.com", "google.com")),
+    ("microsoft", ("protection.outlook.com", "office365", "outlook.com")),
+    ("zoho", ("zoho.",)),
+    ("proofpoint", ("pphosted.com", "proofpoint")),
+    ("mimecast", ("mimecast",)),
+]
+
+
+def provider_of(domain: str) -> str:
+    hosts = " ".join(mx_hosts(domain)).lower()
+    for name, sigs in _PROVIDERS:
+        if any(s in hosts for s in sigs):
+            return name
+    return ""
 
 
 def valid_syntax(email: str) -> bool:
@@ -96,29 +115,31 @@ def is_catch_all(domain: str, timeout: float = 8.0, from_addr: str = DEFAULT_FRO
 def verify_email(email: str, do_smtp: bool = True, timeout: float = 8.0,
                  from_addr: str = DEFAULT_FROM) -> Dict[str, object]:
     """
-    Return {syntax, mx (bool|None), status}.
+    Return {syntax, mx (bool|None), status, provider}.
     status in: invalid | verified | accept_all | probable | unverified
     """
     email = (email or "").strip().lower()
     if not valid_syntax(email):
-        return {"syntax": False, "mx": False, "status": "invalid"}
+        return {"syntax": False, "mx": False, "status": "invalid", "provider": ""}
 
-    hosts = mx_hosts(domain_of(email))
+    dom = domain_of(email)
+    hosts = mx_hosts(dom)
     if not hosts:
-        return {"syntax": True, "mx": False, "status": "invalid"}
+        return {"syntax": True, "mx": False, "status": "invalid", "provider": ""}
 
+    provider = provider_of(dom)
     if not do_smtp:
-        return {"syntax": True, "mx": True, "status": "probable"}
+        return {"syntax": True, "mx": True, "status": "probable", "provider": provider}
 
-    # Catch-all first: if the domain accepts anything, we can't confirm one user.
-    if is_catch_all(domain_of(email), timeout, from_addr):
-        return {"syntax": True, "mx": True, "status": "accept_all"}
+    # Catch-all: if the domain accepts any random mailbox, we can't confirm one.
+    if is_catch_all(dom, timeout, from_addr):
+        return {"syntax": True, "mx": True, "status": "accept_all", "provider": provider}
 
     code = _rcpt_code(hosts[0], email, from_addr, timeout)
-    if code is None:
-        return {"syntax": True, "mx": True, "status": "unverified"}
     if code in (250, 251):
-        return {"syntax": True, "mx": True, "status": "verified"}
-    if code in (550, 551, 553, 501, 552):
-        return {"syntax": True, "mx": True, "status": "invalid"}
-    return {"syntax": True, "mx": True, "status": "unverified"}
+        return {"syntax": True, "mx": True, "status": "verified", "provider": provider}
+    if code in (550, 551, 553, 501):
+        return {"syntax": True, "mx": True, "status": "invalid", "provider": provider}
+    # None / 450 / 451 / 421 / 452 / 552 -> temporary, throttled or mailbox-full:
+    # the address may well exist; don't call it invalid.
+    return {"syntax": True, "mx": True, "status": "unverified", "provider": provider}

@@ -18,6 +18,7 @@ from urllib.robotparser import RobotFileParser
 
 from .compliance import page_forbids_unsolicited
 from .extract import (
+    extract_cfemails,
     extract_emails,
     extract_mailto,
     extract_phones,
@@ -177,6 +178,7 @@ class Crawler:
         result["name"] = guess_business_name(soup)
         result["pages"].append(start_url)
         result["emails"] |= extract_mailto(soup)
+        result["emails"] |= extract_cfemails(soup)
         result["emails"] |= extract_emails(home)
         result["phones"] |= extract_phones(home)
         if page_forbids_unsolicited(soup.get_text(" ", strip=True)):
@@ -189,6 +191,7 @@ class Crawler:
             psoup = BeautifulSoup(page, "html.parser")
             result["pages"].append(link)
             result["emails"] |= extract_mailto(psoup)
+            result["emails"] |= extract_cfemails(psoup)
             result["emails"] |= extract_emails(page)
             result["phones"] |= extract_phones(page)
             if page_forbids_unsolicited(psoup.get_text(" ", strip=True)):

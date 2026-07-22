@@ -106,3 +106,40 @@ builds trust with clinicians.
 **Sending is still your responsibility.** This tool gathers and organises
 publicly-published business contacts; it does not send mail. Pair it with a
 reputable email platform that provides compliant unsubscribe handling.
+
+---
+
+## 5. Aggressive discovery — what the tool does and does NOT do
+
+"Deep search" widens collection to more **public** channels. Everything used is
+public web pages, public archives, public DNS/SMTP, or licensed APIs:
+
+| Channel | What it is |
+|---------|-----------|
+| Company website crawl | The org's own published emails (incl. Cloudflare-obfuscated). |
+| Search-engine dorking | `site:`/`filetype:`/`intext:` operators via a **licensed SERP API** (never raw Google scraping). |
+| Wayback Machine | Emails archived on old public contact/team pages. |
+| MX + SMTP RCPT probe | Public mail-server responses; **no message is ever sent**. |
+| Email-pattern inference | Pure math on a name + domain. |
+
+**Deliberately NOT implemented (illegal / high-risk — the research flagged these):**
+
+- ❌ **Breached-credential / combolist dumps** (DeHashed-style, "Collection #1"). Unlawful processing; operators have been arrested.
+- ❌ **Authenticated LinkedIn / social scraping**, fake accounts, or login/rate-limit bypass (CFAA/ToS/trespass exposure).
+- ❌ **Microsoft 365 login enumeration** (GetCredentialType / Autodiscover) — account-enumeration used in phishing recon.
+- ❌ **Raw Google/Bing scraping via captcha-evading proxies** (ToS violation).
+- ❌ **SMTP `VRFY`/`EXPN`** and **send-and-monitor bounce testing** (emailing real people to read bounces).
+
+If you ever want one of these, the answer is no — they create legal liability
+and get your domain/IP blacklisted.
+
+**Verification infrastructure note.** Live SMTP verification only works well from
+a host with **outbound port 25 open** and correct **PTR/rDNS + HELO + SPF**
+alignment — i.e. a VPS, not a home PC (residential ISPs block port 25). On your
+PC, found emails will read **"Probable/Unverified"**; that's expected. Google
+Workspace / Microsoft 365 domains often "accept-all", so a 250 there is weak —
+the tool marks those and leans on pattern-inference confidence instead.
+
+**Personal data.** A named person's work email is personal data under GDPR/CCPA
+even when public. Honour opt-outs and takedown requests, keep a do-not-contact
+suppression list, and don't bulk-resell harvested data.

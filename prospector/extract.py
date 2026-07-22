@@ -21,15 +21,43 @@ _PHONE_RE = re.compile(
 
 
 def deobfuscate(text: str) -> str:
-    """Undo common '[at]' / '(dot)' style email obfuscation."""
+    """Undo common '[at]' / '(dot)' / HTML-entity email obfuscation."""
     if not text:
         return ""
     t = text
+    t = t.replace("&#64;", "@").replace("&commat;", "@").replace("&#46;", ".")
     t = re.sub(r"\s*[\[\(]\s*at\s*[\]\)]\s*", "@", t, flags=re.I)
     t = re.sub(r"\s+at\s+", "@", t, flags=re.I)
     t = re.sub(r"\s*[\[\(]\s*dot\s*[\]\)]\s*", ".", t, flags=re.I)
     t = re.sub(r"\s+dot\s+", ".", t, flags=re.I)
     return t
+
+
+def decode_cfemail(encoded: str) -> str:
+    """Decode a Cloudflare 'email-protection' hex string (XOR with first byte)."""
+    try:
+        data = bytes.fromhex(encoded.strip())
+        key = data[0]
+        return "".join(chr(b ^ key) for b in data[1:])
+    except Exception:
+        return ""
+
+
+def extract_cfemails(soup) -> Set[str]:
+    """Recover Cloudflare-obfuscated emails from a parsed page."""
+    out: Set[str] = set()
+    if soup is None:
+        return out
+    for el in soup.select("[data-cfemail]"):
+        dec = normalize_email(decode_cfemail(el.get("data-cfemail", "")))
+        if is_collectable_business_email(dec):
+            out.add(dec)
+    for a in soup.select('a[href*="/cdn-cgi/l/email-protection#"]'):
+        frag = a.get("href", "").split("#", 1)[-1]
+        dec = normalize_email(decode_cfemail(frag))
+        if is_collectable_business_email(dec):
+            out.add(dec)
+    return out
 
 
 def extract_emails(text: str, deobfuscated: bool = True) -> Set[str]:

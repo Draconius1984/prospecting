@@ -10,6 +10,7 @@ import re
 from typing import Dict, List, Optional
 
 from .compliance import is_collectable_business_email, normalize_email
+from .extract import decode_cfemail
 
 # Multi-word phrases / words that signal a job title. Extend for other verticals.
 TITLE_KEYWORDS = [
@@ -114,11 +115,25 @@ def _find_title(container, name: str) -> str:
 
 
 def _email_in(container) -> str:
-    a = container.select_one('a[href^="mailto:"]') if container else None
-    if not a:
+    if not container:
         return ""
-    cand = normalize_email(a.get("href", "")[len("mailto:"):].split("?", 1)[0])
-    return cand if is_collectable_business_email(cand) else ""
+    a = container.select_one('a[href^="mailto:"]')
+    if a:
+        cand = normalize_email(a.get("href", "")[len("mailto:"):].split("?", 1)[0])
+        if is_collectable_business_email(cand):
+            return cand
+    # Cloudflare-obfuscated address inside this card.
+    cf = container.select_one("[data-cfemail]")
+    if cf:
+        dec = normalize_email(decode_cfemail(cf.get("data-cfemail", "")))
+        if is_collectable_business_email(dec):
+            return dec
+    cfa = container.select_one('a[href*="/cdn-cgi/l/email-protection#"]')
+    if cfa:
+        dec = normalize_email(decode_cfemail(cfa.get("href", "").split("#", 1)[-1]))
+        if is_collectable_business_email(dec):
+            return dec
+    return ""
 
 
 def _card_for(el, name: str):

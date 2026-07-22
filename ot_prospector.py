@@ -173,7 +173,7 @@ def cmd_people(args) -> None:
     people = find_people(
         sites, roles,
         delay=args.delay, max_pages=args.max_pages,
-        do_smtp=not args.no_smtp, use_hunter=args.hunter,
+        do_smtp=not args.no_smtp, use_hunter=args.hunter, deep=args.deep,
         on_log=lambda m: print("  " + m),
     )
     found = dedupe(people)
@@ -240,6 +240,7 @@ def build_parser() -> argparse.ArgumentParser:
     pp.add_argument("--max-pages", type=int, default=6)
     pp.add_argument("--delay", type=float, default=1.5)
     pp.add_argument("--no-smtp", action="store_true", help="Skip live SMTP verification.")
+    pp.add_argument("--deep", action="store_true", help="Aggressive mode: mine search dorks + web archives for emails.")
     pp.add_argument("--hunter", action="store_true", help="Use Hunter.io email-finder if HUNTER_API_KEY set.")
     pp.add_argument("--out", default="data/people.csv")
     pp.set_defaults(func=cmd_people)

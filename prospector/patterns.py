@@ -21,22 +21,37 @@ _CREDS = {
     "bocctherapy", "boccthy", "bappsc", "mocctherapy", "cht", "apam", "reg",
 }
 
-# Templates in rough real-world frequency order. Tokens: {first} {last} {f} {l}
-PATTERN_TEMPLATES: List[str] = [
-    "{first}.{last}",
-    "{first}{last}",
-    "{f}{last}",
-    "{first}",
-    "{first}_{last}",
-    "{first}-{last}",
-    "{f}.{last}",
-    "{last}.{first}",
+# Empirical frequency priors from a study of 336k verified B2B emails
+# (Sendburg). Used to rank guesses so the most likely address is tried first.
+# Tokens: {first} {last} {f} {l}
+FREQUENCY = {
+    "{first}.{last}": 0.477,
+    "{f}{last}": 0.268,
+    "{first}": 0.081,
+    "{first}{last}": 0.023,
+    "{first}_{last}": 0.023,
+    "{f}.{last}": 0.021,
+    "{last}": 0.012,
+    "{last}.{first}": 0.0065,
+    "{first}.{l}": 0.0013,
+    "{first}-{last}": 0.0010,
+}
+
+# Full candidate set: frequency-ranked head, then rarer tail forms.
+PATTERN_TEMPLATES: List[str] = list(FREQUENCY.keys()) + [
     "{last}{first}",
     "{last}{f}",
     "{f}{l}",
-    "{last}",
     "{first}{l}",
+    "{f}-{last}",
+    "{last}-{first}",
+    "{f}_{last}",
 ]
+
+
+def pattern_prior(template: str) -> float:
+    """Real-world probability weight for a template (0-1)."""
+    return FREQUENCY.get(template, 0.004)
 
 
 def _ascii(s: str) -> str:

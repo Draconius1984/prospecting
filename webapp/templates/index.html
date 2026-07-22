@@ -213,6 +213,7 @@
               <div><label class="fld">Results / query</label><input type="number" id="p-perq" value="10" min="1" max="20"></div>
               <div><label class="fld">Max pages / site</label><input type="number" id="p-maxp" value="6" min="1" max="15"></div>
               <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:8px">
+                <label class="switch"><input type="checkbox" id="p-deep" checked> Deep search 🔥</label>
                 <label class="switch"><input type="checkbox" id="p-smtp" checked> SMTP verify</label>
                 <label class="switch"><input type="checkbox" id="p-hunter"> Hunter finder</label>
               </div>
@@ -437,6 +438,7 @@ function runPeople(){
     max_pages:+document.getElementById('p-maxp').value||6,
     smtp:document.getElementById('p-smtp').checked,
     hunter:document.getElementById('p-hunter').checked,
+    deep:document.getElementById('p-deep').checked,
   },'p-run');
 }
 function runCrawl(){
