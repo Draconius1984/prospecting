@@ -57,7 +57,26 @@ Copy-Item config.example.env .env
 
 ---
 
-## Usage
+## 🌐 Run it in your browser (localhost)
+
+Prefer clicking to typing? There's a local web UI:
+
+```powershell
+pip install flask                 # once (already in requirements.txt)
+python webapp/app.py
+```
+Then open **http://localhost:5000**. You get:
+
+- **Crawl a site list** — paste clinic URLs, hit Run, watch a live log and results table.
+- **Discover by region** — tick Queensland regions and search (needs a search API key).
+- A **Validate emails (MX)** toggle, per-row flags, and **Download CSV** / **Save to
+  `data/prospects.csv`** buttons.
+
+It binds to `127.0.0.1` (your machine only) and uses the exact same engine as the CLI.
+
+---
+
+## Usage (command line)
 
 Every command: `python ot_prospector.py <command> -h` for options.
 
@@ -143,7 +162,11 @@ by hand into a URL list, then `crawl`.
 ```
 prospecting/
 ├─ ot_prospector.py          # CLI entry point
-├─ prospector/               # the package
+├─ webapp/                   # local browser UI (Flask)
+│  ├─ app.py                 # server: /api/crawl, /api/discover, /api/jobs/...
+│  └─ templates/index.html   # single-page UI (no external assets)
+├─ prospector/               # the shared package
+│  ├─ pipeline.py            # the engine both front-ends call
 │  ├─ sources.py             # QLD regions, directories, query builder
 │  ├─ search.py              # SerpAPI / Google CSE / Bing adapters
 │  ├─ crawler.py             # polite, robots-aware crawler

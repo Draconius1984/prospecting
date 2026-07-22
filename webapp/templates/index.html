@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OT Prospector — Queensland</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --ink:#1f2933; --muted:#6b7280; --line:#e4e8ee;
+    --brand:#0f766e; --brand2:#0d5c56; --accent:#f0fdfa;
+    --warn-bg:#fef3c7; --warn-ink:#92400e; --flag-bg:#fee2e2; --flag-ink:#991b1b;
+    --ok:#047857; --pill:#eef2ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:var(--brand)}
+  header{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;padding:22px 24px}
+  header h1{margin:0;font-size:20px;letter-spacing:.2px}
+  header .sub{opacity:.9;font-size:13px;margin-top:4px}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 60px}
+  .banner{background:var(--warn-bg);color:var(--warn-ink);border:1px solid #fcd670;border-radius:10px;padding:10px 14px;font-size:13px;margin:16px 0}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:900px){.grid{grid-template-columns:380px 1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{margin:0 0 12px;font-size:15px}
+  .tabs{display:flex;gap:6px;margin-bottom:14px}
+  .tab{flex:1;text-align:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:#fafbfc;font-size:13px;font-weight:600;color:var(--muted)}
+  .tab.active{background:var(--accent);border-color:var(--brand);color:var(--brand2)}
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.3px}
+  textarea,input[type=number]{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:inherit;background:#fff}
+  textarea{min-height:150px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
+  .checks{display:flex;flex-wrap:wrap;gap:6px 12px;max-height:160px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px}
+  .checks label{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;margin:0;font-weight:500;color:var(--ink);font-size:13px}
+  .opts{display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap}
+  .opts label{margin:0;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);display:flex;gap:6px;align-items:center}
+  .opts .num{width:90px}
+  button.run{margin-top:14px;width:100%;background:var(--brand);color:#fff;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer}
+  button.run:disabled{background:#9ca3af;cursor:not-allowed}
+  button.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--pill);color:#3730a3}
+  .pill.run{background:#fef9c3;color:#854d0e}
+  .pill.done{background:#dcfce7;color:var(--ok)}
+  .pill.err{background:var(--flag-bg);color:var(--flag-ink)}
+  .counts{font-size:13px;color:var(--muted)}
+  .counts b{color:var(--ink)}
+  .cfgline{font-size:12px;color:var(--muted);margin-top:8px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .dot.on{background:var(--ok)} .dot.off{background:#cbd5e1}
+  pre.log{background:#0b1220;color:#c7d2fe;border-radius:8px;padding:12px;height:150px;overflow:auto;font-size:12px;margin:0}
+  .tablewrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+  th{background:#f8fafc;position:sticky;top:0;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+  tr.flagged td{background:var(--flag-bg)}
+  .tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+  .tag.generic{background:#e0f2fe;color:#075985}
+  .tag.personal{background:#f3e8ff;color:#6b21a8}
+  .tag.flagged{background:var(--flag-ink);color:#fff}
+  .tag.crawled{background:#e5e7eb;color:#374151}
+  .tag.validated{background:#dcfce7;color:var(--ok)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  details{margin-top:16px}
+  summary{cursor:pointer;font-weight:600;font-size:14px}
+  .src{font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 OT Prospector <span class="small" style="opacity:.8">v{{ version }}</span></h1>
+  <div class="sub">Find published business emails of occupational therapy clinics across Queensland — compliance-first.</div>
+</header>
+
+<div class="wrap">
+  <div class="banner">
+    ⚠️ <b>Before any outreach:</b> read <code>docs/COMPLIANCE.md</code>. Exclude rows marked
+    <b>flagged</b>, prefer role inboxes (info@ / reception@), and keep the source URL as evidence
+    of conspicuous publication (Spam Act 2003 &amp; Privacy Act).
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: controls -->
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" data-mode="crawl" onclick="setMode('crawl')">Crawl a site list</div>
+        <div class="tab" data-mode="discover" onclick="setMode('discover')">Discover by region</div>
+      </div>
+
+      <!-- CRAWL -->
+      <div id="panel-crawl">
+        <label>Clinic website URLs (one per line)</label>
+        <textarea id="urls" placeholder="brisbanepaediatricot.com.au&#10;https://goldcoastot.com.au&#10;yourclinic.com.au"></textarea>
+        <div class="small muted" style="margin-top:6px">Tip: gather these from the directories below, then paste here.</div>
+      </div>
+
+      <!-- DISCOVER -->
+      <div id="panel-discover" style="display:none">
+        <label>Regions to search</label>
+        <div class="checks" id="regions"></div>
+        <div class="opts">
+          <label>Results / query <input class="num" type="number" id="perq" value="10" min="1" max="20"></label>
+        </div>
+        <div id="nokey" class="cfgline" style="display:none;color:var(--flag-ink)">
+          No search API key configured — add <code>SERPAPI_API_KEY</code> to <code>.env</code> to enable discovery, or use Crawl mode.
+        </div>
+      </div>
+
+      <div class="opts">
+        <label>Delay (s) <input class="num" type="number" id="delay" value="2" min="0" step="0.5"></label>
+        <label>Max pages <input class="num" type="number" id="maxp" value="5" min="1" max="15"></label>
+        <label><input type="checkbox" id="validate" checked> Validate emails (MX)</label>
+      </div>
+
+      <button class="run" id="runBtn" onclick="run()">Run</button>
+
+      <div class="cfgline" id="cfg"></div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div class="card">
+      <div class="status">
+        <span class="pill" id="pill">idle</span>
+        <span class="counts" id="counts"></span>
+        <span style="margin-left:auto"></span>
+        <button class="ghost" id="dlBtn" onclick="download()" disabled>⬇ Download CSV</button>
+        <button class="ghost" id="saveBtn" onclick="save()" disabled>💾 Save to data/prospects.csv</button>
+      </div>
+      <pre class="log" id="log">Ready. Choose a mode on the left and hit Run.</pre>
+      <div class="tablewrap">
+        <table id="tbl">
+          <thead><tr>
+            <th>Practice</th><th>Email</th><th>Type</th><th>Phone</th>
+            <th>Website</th><th>Status</th><th>MX</th><th>Notes</th>
+          </tr></thead>
+          <tbody id="rows"><tr><td colspan="8" class="muted small" style="padding:16px">No results yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <details id="srcbox">
+    <summary>📚 Public Queensland OT directories to source clinic sites from</summary>
+    <div id="sources"></div>
+  </details>
+</div>
+
+<script>
+let MODE = "crawl";
+let JOB = null;
+let TIMER = null;
+
+function setMode(m){
+  MODE = m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===m));
+  document.getElementById('panel-crawl').style.display  = m==='crawl' ? 'block':'none';
+  document.getElementById('panel-discover').style.display = m==='discover' ? 'block':'none';
+}
+
+async function loadConfig(){
+  const c = await (await fetch('/api/config')).json();
+  // regions
+  const box = document.getElementById('regions');
+  box.innerHTML = c.regions.map(r=>`<label><input type="checkbox" class="rgn" value="${r}" checked>${r}</label>`).join('');
+  // status line
+  const sp = c.search_provider!=='none';
+  document.getElementById('cfg').innerHTML =
+    `<span class="dot ${sp?'on':'off'}"></span>Search: <b>${sp?c.search_provider:'not set'}</b> &nbsp; `+
+    `<span class="dot ${c.hunter_enabled?'on':'off'}"></span>Hunter enrich: <b>${c.hunter_enabled?'on':'off'}</b>`;
+  document.getElementById('nokey').style.display = sp ? 'none':'block';
+  // sources
+  document.getElementById('sources').innerHTML = c.sources.map(s=>
+    `<div class="src"><b>${s.name}</b> <span class="muted small">[${s.type}]</span><br>`+
+    `<a href="${s.url}" target="_blank" rel="noopener">${s.url}</a><br>`+
+    `<span class="muted small">${s.note}</span></div>`).join('');
+}
+
+async function run(){
+  const validate = document.getElementById('validate').checked;
+  const delay = parseFloat(document.getElementById('delay').value)||2;
+  const max_pages = parseInt(document.getElementById('maxp').value)||5;
+  let url, body;
+  if(MODE==='crawl'){
+    url='/api/crawl';
+    body={urls:document.getElementById('urls').value, delay, max_pages, validate};
+  }else{
+    const regions=[...document.querySelectorAll('.rgn:checked')].map(x=>x.value);
+    url='/api/discover';
+    body={regions, per_query:parseInt(document.getElementById('perq').value)||10, delay, max_pages, validate};
+  }
+  setRunning(true);
+  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await r.json();
+  if(!r.ok){ setRunning(false); setLog('⚠ '+(j.error||'request failed')); setPill('err','error'); return; }
+  JOB=j.job_id;
+  if(TIMER) clearInterval(TIMER);
+  TIMER=setInterval(poll, 1500);
+  poll();
+}
+
+async function poll(){
+  if(!JOB) return;
+  const j = await (await fetch('/api/jobs/'+JOB)).json();
+  setLog((j.logs||[]).join('\n'));
+  setCounts(j.count, j.with_email, j.flagged);
+  renderRows(j.prospects||[]);
+  if(j.status==='running'){ setPill('run','running…'); }
+  else if(j.status==='done'){ setPill('done','done'); stop(true); }
+  else if(j.status==='error'){ setPill('err','error'); stop(false); }
+}
+
+function stop(ok){
+  if(TIMER){ clearInterval(TIMER); TIMER=null; }
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('dlBtn').disabled=!ok;
+  document.getElementById('saveBtn').disabled=!ok;
+}
+function setRunning(on){
+  document.getElementById('runBtn').disabled=on;
+  if(on){ document.getElementById('dlBtn').disabled=true; document.getElementById('saveBtn').disabled=true;
+          document.getElementById('rows').innerHTML=''; }
+}
+function setPill(cls,txt){ const p=document.getElementById('pill'); p.className='pill '+cls; p.textContent=txt; }
+function setLog(t){ const l=document.getElementById('log'); l.textContent=t; l.scrollTop=l.scrollHeight; }
+function setCounts(t,e,f){
+  document.getElementById('counts').innerHTML =
+    `<b>${t||0}</b> records · <b>${e||0}</b> with email · <b style="color:var(--flag-ink)">${f||0}</b> flagged`;
+}
+function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function tag(cls,txt){ return txt?`<span class="tag ${cls}">${esc(txt)}</span>`:''; }
+
+function renderRows(rows){
+  const tb=document.getElementById('rows');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" class="muted small" style="padding:16px">No results yet.</td></tr>'; return; }
+  tb.innerHTML = rows.map(r=>{
+    const flagged = r.status==='flagged';
+    const site = r.website ? `<a href="${esc(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//,''))}</a>` : '';
+    const mail = r.email ? `<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : '<span class="muted">—</span>';
+    return `<tr class="${flagged?'flagged':''}">`+
+      `<td title="${esc(r.practice_name)}">${esc(r.practice_name)}</td>`+
+      `<td>${mail}</td>`+
+      `<td>${tag(r.email_type,r.email_type)}</td>`+
+      `<td>${esc(r.phone)}</td>`+
+      `<td>${site}</td>`+
+      `<td>${tag(r.status,r.status)}</td>`+
+      `<td>${esc(r.mx_ok)}</td>`+
+      `<td title="${esc(r.notes)}">${esc(r.notes)}</td></tr>`;
+  }).join('');
+}
+
+async function download(){ if(JOB) window.location='/api/jobs/'+JOB+'/download'; }
+async function save(){
+  if(!JOB) return;
+  const j = await (await fetch('/api/jobs/'+JOB+'/save',{method:'POST'})).json();
+  if(j.path){ setLog(document.getElementById('log').textContent + `\n💾 Saved ${j.saved} record(s) to ${j.path}`); }
+}
+
+loadConfig();
+</script>
+</body>
+</html>
