@@ -1,0 +1,16 @@
+# Normalize line endings: LF in the repository, native on checkout.
+* text=auto
+
+# Source & text files stay LF everywhere.
+*.py   text eol=lf
+*.md   text eol=lf
+*.csv  text eol=lf
+*.txt  text eol=lf
+*.env  text eol=lf
+
+# Binaries.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary
