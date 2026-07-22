@@ -70,6 +70,8 @@ Either way it opens **http://localhost:5000**. You get:
 
 - **Crawl a site list** — paste clinic URLs, hit Run, watch a live log and results table.
 - **Discover by region** — tick Queensland regions and search (needs a search API key).
+- **Saved leads** — view and download whatever is already in `data/prospects.csv`
+  right in the browser (loads automatically on open if the file exists).
 - A **Validate emails (MX)** toggle, per-row flags, and **Download CSV** / **Save to
   `data/prospects.csv`** buttons.
 

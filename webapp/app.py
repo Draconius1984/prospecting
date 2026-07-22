@@ -41,6 +41,7 @@ from prospector.pipeline import (
     crawl_sites,
     dedupe,
     discover_urls,
+    read_prospects,
     urls_from_text,
     validate_prospects,
     write_prospects,
@@ -48,6 +49,9 @@ from prospector.pipeline import (
 from prospector.sources import CURATED_SOURCES, QLD_REGIONS
 
 app = Flask(__name__)
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SAVED_CSV = os.path.join(PROJECT_ROOT, "data", "prospects.csv")
 
 # In-memory job store. Fine for a single-user local tool.
 JOBS: Dict[str, dict] = {}
@@ -155,6 +159,35 @@ def api_config():
         "regions": [r["region"] for r in QLD_REGIONS],
         "sources": CURATED_SOURCES,
     })
+
+
+@app.route("/api/saved")
+def api_saved():
+    """Return the contents of data/prospects.csv (the research/master list)."""
+    if not os.path.exists(SAVED_CSV):
+        return jsonify({"exists": False, "count": 0, "with_email": 0, "flagged": 0, "prospects": []})
+    try:
+        rows = [p.to_row() for p in read_prospects(SAVED_CSV)]
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({"exists": True, "error": str(exc), "count": 0, "prospects": []}), 500
+    return jsonify({
+        "exists": True,
+        "count": len(rows),
+        "with_email": sum(1 for r in rows if r.get("email")),
+        "flagged": sum(1 for r in rows if r.get("status") == "flagged"),
+        "prospects": rows,
+    })
+
+
+@app.route("/api/saved/download")
+def api_saved_download():
+    if not os.path.exists(SAVED_CSV):
+        return jsonify({"error": "no saved file yet"}), 404
+    with open(SAVED_CSV, encoding="utf-8") as fh:
+        return Response(
+            fh.read(), mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=prospects.csv"},
+        )
 
 
 @app.route("/api/crawl", methods=["POST"])

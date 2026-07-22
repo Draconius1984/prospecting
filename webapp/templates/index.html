@@ -86,6 +86,7 @@
       <div class="tabs">
         <div class="tab active" data-mode="crawl" onclick="setMode('crawl')">Crawl a site list</div>
         <div class="tab" data-mode="discover" onclick="setMode('discover')">Discover by region</div>
+        <div class="tab" data-mode="saved" id="savedTab" onclick="setMode('saved')">Saved leads</div>
       </div>
 
       <!-- CRAWL -->
@@ -107,15 +108,25 @@
         </div>
       </div>
 
-      <div class="opts">
-        <label>Delay (s) <input class="num" type="number" id="delay" value="2" min="0" step="0.5"></label>
-        <label>Max pages <input class="num" type="number" id="maxp" value="5" min="1" max="15"></label>
-        <label><input type="checkbox" id="validate" checked> Validate emails (MX)</label>
+      <!-- SAVED -->
+      <div id="panel-saved" style="display:none">
+        <p class="small muted">Your saved / researched leads from <code>data/prospects.csv</code>.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="ghost" onclick="loadSaved()">🔄 Load / refresh</button>
+          <a class="ghost" href="/api/saved/download" style="text-decoration:none">⬇ Download CSV</a>
+        </div>
+        <div id="savedNote" class="small muted" style="margin-top:8px"></div>
       </div>
 
-      <button class="run" id="runBtn" onclick="run()">Run</button>
-
-      <div class="cfgline" id="cfg"></div>
+      <div id="runControls">
+        <div class="opts">
+          <label>Delay (s) <input class="num" type="number" id="delay" value="2" min="0" step="0.5"></label>
+          <label>Max pages <input class="num" type="number" id="maxp" value="5" min="1" max="15"></label>
+          <label><input type="checkbox" id="validate" checked> Validate emails (MX)</label>
+        </div>
+        <button class="run" id="runBtn" onclick="run()">Run</button>
+        <div class="cfgline" id="cfg"></div>
+      </div>
     </div>
 
     <!-- RIGHT: results -->
@@ -156,6 +167,24 @@ function setMode(m){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===m));
   document.getElementById('panel-crawl').style.display  = m==='crawl' ? 'block':'none';
   document.getElementById('panel-discover').style.display = m==='discover' ? 'block':'none';
+  document.getElementById('panel-saved').style.display = m==='saved' ? 'block':'none';
+  document.getElementById('runControls').style.display = m==='saved' ? 'none':'block';
+  if(m==='saved') loadSaved();
+}
+
+async function loadSaved(){
+  setPill('run','loading…');
+  const j = await (await fetch('/api/saved')).json();
+  if(!j.exists || !j.count){
+    document.getElementById('savedNote').textContent =
+      'No data/prospects.csv yet — run a crawl and click “Save”, or generate the research list.';
+    setPill('idle','idle'); setCounts(0,0,0); renderRows([]); return;
+  }
+  document.getElementById('savedNote').textContent = 'Loaded from data/prospects.csv';
+  setLog(`Loaded ${j.count} saved lead(s) from data/prospects.csv (${j.with_email} with an email).`);
+  setCounts(j.count, j.with_email, j.flagged);
+  renderRows(j.prospects||[]);
+  setPill('done','saved list');
 }
 
 async function loadConfig(){
@@ -257,6 +286,9 @@ async function save(){
 }
 
 loadConfig();
+fetch('/api/saved').then(r=>r.json()).then(j=>{
+  if(j.exists && j.count){ document.getElementById('savedTab').textContent = 'Saved leads ('+j.count+')'; }
+}).catch(()=>{});
 </script>
 </body>
 </html>
