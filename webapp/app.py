@@ -333,7 +333,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     url = f"http://localhost:{port}"
     print("=" * 56)
-    print(f"  OT Prospector web UI is starting...")
+    print("  Leo's Bitchen Prospecting Tool is starting...")
     print(f"  Open this in your browser:  {url}")
     print(f"  (Press Ctrl+C in this window to stop the server.)")
     print("=" * 56)

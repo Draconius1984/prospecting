@@ -13,7 +13,7 @@ if not exist ".venv\Scripts\python.exe" (
   exit /b 1
 )
 
-echo Starting OT Prospector...
+echo Starting Leo's Bitchen Prospecting Tool...
 ".venv\Scripts\python.exe" webapp\app.py
 
 echo.
